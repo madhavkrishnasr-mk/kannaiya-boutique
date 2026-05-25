@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kannaiya | Dress Collection</title>
+<style>
+  body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #fafafa; color: #333; }
+  header { padding: 20px 40px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+  .logo { font-size: 28px; font-weight: 800; letter-spacing: 3px; color: #111; text-transform: uppercase; }
+  nav button { background: none; border: none; font-size: 16px; margin-left: 20px; cursor: pointer; color: #666; transition: color 0.2s; }
+  nav button:hover, nav button.active-nav { color: #000; font-weight: bold; }
+  
+  .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+  .card { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); text-align: center; }
+  .card img { width: 100%; height: 350px; object-fit: cover; border-radius: 4px; cursor: pointer; transition: transform 0.3s; }
+  .card img:hover { transform: scale(1.02); }
+  
+  .price { font-size: 18px; font-weight: bold; margin: 10px 0; color: #2c3e50; }
+  .btn { background: #2c3e50; color: #fff; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+  .btn:hover { background: #1a252f; }
+  .btn-danger { background: #e74c3c; width: auto; padding: 8px 15px; font-size: 14px; }
+  
+  .section { display: none; animation: fadeIn 0.4s; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .details-container { display: flex; gap: 40px; flex-wrap: wrap; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.04);}
+  .details-img { flex: 1; min-width: 300px; }
+  
+  /* Horizontal scrolling for multiple images */
+  .image-gallery { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; }
+  .image-gallery img { height: 400px; border-radius: 8px; object-fit: cover; flex-shrink: 0; max-width: 100%;}
+  
+  .details-info { flex: 1; min-width: 300px; }
+  .size-btn { padding: 10px 20px; border: 1px solid #ccc; background: white; cursor: pointer; margin-right: 10px; border-radius: 4px; font-size: 16px;}
+  .size-btn.selected { border-color: #2c3e50; background: #2c3e50; color: white; }
+
+  .order-item { display: flex; justify-content: space-between; align-items: center; padding: 20px; background: #fff; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2c3e50; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+  .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 200; }
+  .modal-content { background: #fff; padding: 30px; border-radius: 8px; text-align: center; max-width: 400px; width: 90%; }
+  .form-group { margin-bottom: 15px; text-align: left; }
+  .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;}
+  #qrCode { margin: 20px 0; width: 200px; height: 200px; border: 1px solid #eee; padding: 10px; border-radius: 8px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">KANNAIYA</div>
+  <nav>
+    <button onclick="showSection('shop')" class="active-nav" id="nav-shop">Shop</button>
+    <button onclick="showSection('orders')" id="nav-orders">My Orders (<span id="orderCount">0</span>)</button>
+    <span id="userInfo" style="margin-left: 20px; font-weight: bold; color: #2c3e50;"></span>
+    <button onclick="openAuthModal()" id="nav-login">Login / Register</button>
+    <button onclick="logout()" id="nav-logout" style="display: none;">Logout</button>
+  </nav>
+</header>
+
+<div class="container">
+  <div id="shop" class="section active">
+    <h2 style="margin-bottom: 30px;">New Arrivals</h2>
+    <div class="grid" id="productGrid"><p>Loading products...</p></div>
+  </div>
+
+  <div id="details" class="section">
+    <button class="btn" style="width: auto; margin-bottom: 20px; background: #95a5a6;" onclick="showSection('shop')">&larr; Back to Shop</button>
+    <div class="details-container" id="detailsContent"></div>
+  </div>
+
+  <div id="orders" class="section">
+    <h2 style="margin-bottom: 30px;">My Orders</h2>
+    <div id="orderList"><p>Loading orders...</p></div>
+  </div>
+</div>
+
+<div class="modal" id="authModal">
+  <div class="modal-content">
+    <h3 style="margin-top: 0;" id="authTitle">Login</h3>
+    <div class="form-group"><input type="email" id="auth_email" class="form-control" placeholder="Email" required></div>
+    <div class="form-group"><input type="password" id="auth_password" class="form-control" placeholder="Password" required></div>
+    <div id="registerFields" style="display:none;">
+      <div class="form-group"><input type="tel" id="auth_phone" class="form-control" placeholder="Phone Number"></div>
+      <div class="form-group"><textarea id="auth_address" class="form-control" placeholder="Delivery Address" rows="3"></textarea></div>
+    </div>
+    <div id="auth_error" style="color: red; margin-bottom: 10px; display: none;"></div>
+    <button class="btn" id="authActionBtn" onclick="attemptAuth('login')">Login</button>
+    <p style="font-size: 14px; cursor: pointer; color: #2980b9;" onclick="toggleAuthMode()" id="authToggleText">Need an account? Register here.</p>
+    <button class="btn" style="background:#e0e0e0; color:#333; margin-top: 10px;" onclick="closeModal('authModal')">Cancel</button>
+  </div>
+</div>
+
+<div class="modal" id="checkoutModal">
+  <div class="modal-content">
+    <h3 style="margin-top: 0;">Scan & Pay</h3>
+    <p>Waiting for automated payment verification...</p>
+    <h2 style="color: #2c3e50; margin: 10px 0;">₹<span id="payAmount"></span></h2>
+    <img id="qrCode" src="" alt="UPI QR Code">
+    <p style="color: #7f8c8d; font-size: 14px;" id="paymentStatusText">Status: PENDING</p>
+    <button class="btn" style="background:#e0e0e0; color:#333; margin-top: 20px;" onclick="cancelCheckout()">Cancel Checkout</button>
+  </div>
+</div>
+
+<script>
+  let products = [];
+  let pendingProduct = null;
+  let selectedSize = null;
+  let currentOrderId = null;
+  let pollInterval = null;
+
+  window.onload = function() {
+    fetchProducts();
+    checkLoginState();
+  };
+
+  // --- Dynamic Products Fetching ---
+  async function fetchProducts() {
+    try {
+      const res = await fetch('http://localhost:8000/api/products');
+      const data = await res.json();
+      products = data.products;
+      renderProducts();
+    } catch (error) {
+      document.getElementById('productGrid').innerHTML = "<p style='color:red;'>Could not connect to the backend server.</p>";
+    }
+  }
+
+  function renderProducts() {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = '';
+    if (products.length === 0) return grid.innerHTML = "<p>No dresses available currently.</p>";
+
+    products.forEach(p => {
+      // Display only the first image in the grid
+      const primaryImage = p.images.length > 0 ? p.images[0] : '';
+      grid.innerHTML += `<div class="card">
+        <img src="${primaryImage}" onclick="viewDetails(${p.id})">
+        <h3>${p.name}</h3><div class="price">₹${p.price}</div>
+        <button class="btn" onclick="viewDetails(${p.id})">View Details</button>
+      </div>`;
+    });
+  }
+
+  function viewDetails(id) {
+    pendingProduct = products.find(p => p.id === id);
+    selectedSize = null;
+    const content = document.getElementById('detailsContent');
+    
+    const sizes = pendingProduct.sizes.map(s => `<button class="size-btn" onclick="selectSize(this, '${s}')">${s}</button>`).join('');
+    
+    // Render multiple images if available
+    const imageTags = pendingProduct.images.map(imgSrc => `<img src="${imgSrc}">`).join('');
+
+    content.innerHTML = `
+      <div class="details-img">
+        <div class="image-gallery">${imageTags}</div>
+      </div>
+      <div class="details-info">
+        <h2 style="margin-top: 0; font-size: 28px;">${pendingProduct.name}</h2>
+        <div class="price" style="font-size: 24px;">₹${pendingProduct.price}</div>
+        <p style="color: #555;">${pendingProduct.desc}</p>
+        <p style="color: #2980b9; font-weight: bold;">Only ${pendingProduct.stock} left in stock!</p>
+        
+        <div style="margin: 25px 0;"><strong>Select Size:</strong><br><br>${sizes}</div>
+        
+        <div style="margin: 20px 0;">
+          <strong>No. of Pieces:</strong>
+          <input type="number" id="purchase_qty" class="form-control" value="1" min="1" max="${pendingProduct.stock}" style="width: 80px; display: inline-block; margin-left: 10px;">
+        </div>
+
+        <button class="btn" onclick="startCheckout()" ${pendingProduct.stock === 0 ? 'disabled style="background:#ccc;"' : ''}>
+          ${pendingProduct.stock === 0 ? 'Out of Stock' : 'Buy Now'}
+        </button>
+      </div>`;
+    showSection('details');
+  }
+
+  function selectSize(btn, size) {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedSize = size;
+  }
+
+  // Section & Auth Logic
+  function showSection(sectionId) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active-nav'));
+    document.getElementById(sectionId).classList.add('active');
+    if(sectionId !== 'details') document.getElementById('nav-' + sectionId).classList.add('active-nav');
+    if(sectionId === 'orders') renderMyOrders();
+    if(sectionId === 'shop') fetchProducts(); // Refresh stock when returning
+  }
+
+  function checkLoginState() {
+    const user = JSON.parse(localStorage.getItem('kannaiya_user'));
+    if (user) {
+      document.getElementById('nav-login').style.display = 'none';
+      document.getElementById('nav-logout').style.display = 'inline-block';
+      document.getElementById('userInfo').innerText = "Hi, " + user.email.split('@')[0];
+      fetchMyOrderCount(user.email);
+    } else {
+      document.getElementById('nav-login').style.display = 'inline-block';
+      document.getElementById('nav-logout').style.display = 'none';
+      document.getElementById('userInfo').innerText = "";
+      document.getElementById('orderCount').innerText = "0";
+    }
+  }
+
+  function logout() { localStorage.removeItem('kannaiya_user'); checkLoginState(); showSection('shop'); }
+
+  let authMode = 'login';
+  function openAuthModal() { document.getElementById('authModal').style.display = 'flex'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+  function toggleAuthMode() {
+    authMode = authMode === 'login' ? 'register' : 'login';
+    document.getElementById('authTitle').innerText = authMode === 'login' ? 'Login' : 'Create Account';
+    document.getElementById('authActionBtn').innerText = authMode === 'login' ? 'Login' : 'Register';
+    document.getElementById('authActionBtn').setAttribute('onclick', `attemptAuth('${authMode}')`);
+    document.getElementById('authToggleText').innerText = authMode === 'login' ? 'Need an account? Register here.' : 'Already have an account? Login.';
+    document.getElementById('registerFields').style.display = authMode === 'login' ? 'none' : 'block';
+  }
+
+  async function attemptAuth(mode) {
+    const email = document.getElementById('auth_email').value;
+    const password = document.getElementById('auth_password').value;
+    const phone = document.getElementById('auth_phone').value;
+    const address = document.getElementById('auth_address').value;
+    const errorEl = document.getElementById('auth_error');
+    
+    try {
+      const res = await fetch(`http://localhost:8000/api/${mode}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, phone, address })
+      });
+      const data = await res.json();
+      if (data.status === 'success') {
+        if (mode === 'register') return alert("Account created! Please login.");
+        if (data.role === 'admin') window.location.href = 'ad.html';
+        else {
+          localStorage.setItem('kannaiya_user', JSON.stringify(data));
+          checkLoginState();
+          closeModal('authModal');
+        }
+      } else { errorEl.style.display = 'block'; errorEl.innerText = data.message; }
+    } catch (e) { errorEl.style.display = 'block'; errorEl.innerText = "Server not running."; }
+  }
+
+  // --- Orders & Cancellations ---
+  async function fetchMyOrderCount(email) {
+    try {
+      const res = await fetch(`http://localhost:8000/api/my-orders/${email}`);
+      const data = await res.json();
+      document.getElementById('orderCount').innerText = data.orders.length;
+    } catch (e) { console.error(e); }
+  }
+
+  async function renderMyOrders() {
+    const user = JSON.parse(localStorage.getItem('kannaiya_user'));
+    const list = document.getElementById('orderList');
+    if (!user) return list.innerHTML = '<p>Please login to view your orders.</p>';
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/my-orders/${user.email}`);
+      const data = await res.json();
+      if (data.orders.length === 0) return list.innerHTML = '<p>You have not placed any orders yet.</p>';
+
+      document.getElementById('orderCount').innerText = data.orders.length;
+      list.innerHTML = '';
+      
+      data.orders.forEach(order => {
+        let displayStatus = order.status;
+        let statusColor = '#e67e22'; 
+        let canCancel = false;
+        
+        if (order.status === 'PAID') { statusColor = 'green'; canCancel = true; } 
+        else if (order.status === 'PENDING') { canCancel = true; }
+        else if (order.status === 'DISPATCHED') { displayStatus = "DISPATCHED (On the Way)"; statusColor = "#3498db"; }
+        else if (order.status === 'CANCELED') { statusColor = '#c0392b'; }
+
+        // Render Cancel Button only if applicable
+        const cancelBtnHtml = canCancel ? 
+          `<button class="btn btn-danger" style="margin-top:10px;" onclick="cancelCustomerOrder('${order.order_id}')">Cancel Order</button>` : '';
+
+        list.innerHTML += `
+          <div class="order-item" style="${order.status === 'CANCELED' ? 'border-left-color: #c0392b; opacity: 0.7;' : ''}">
+            <div>
+              <strong style="font-size: 18px;">${order.item}</strong> (Size: ${order.size}) x ${order.quantity} Pcs<br>
+              <span style="color: #666; font-size: 14px; margin-top: 5px; display: inline-block;">Order ID: ${order.order_id} | Total: ₹${order.price}</span>
+              <br>${cancelBtnHtml}
+            </div>
+            <div style="text-align: right;">
+              <div style="font-weight: bold; font-size: 16px; color: ${statusColor}; background: ${order.status === 'CANCELED' ? '#fadbd8' : 'transparent'}; padding: 5px; border-radius: 4px;">
+                 ${displayStatus}
+              </div>
+            </div>
+          </div>`;
+      });
+    } catch (e) { list.innerHTML = '<p style="color:red;">Failed to load orders.</p>'; }
+  }
+
+  async function cancelCustomerOrder(orderId) {
+    if(confirm("Are you sure you want to cancel this order? The amount will be refunded if paid.")) {
+      try {
+        await fetch(`http://localhost:8000/api/cancel-order/${orderId}`, { method: 'POST' });
+        renderMyOrders(); // Refresh UI instantly
+      } catch (e) { alert("Could not cancel order."); }
+    }
+  }
+
+  async function startCheckout() {
+    if(!selectedSize) return alert("Select a size first.");
+    const user = JSON.parse(localStorage.getItem('kannaiya_user'));
+    if(!user) return openAuthModal(); 
+
+    const qty = parseInt(document.getElementById('purchase_qty').value) || 1;
+    if (qty > pendingProduct.stock) return alert("Not enough stock available.");
+
+    const totalPrice = pendingProduct.price * qty;
+    currentOrderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/orders', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: currentOrderId, email: user.email, product_id: pendingProduct.id,
+          item_name: pendingProduct.name, size: selectedSize, price: totalPrice, quantity: qty
+        })
+      });
+      const data = await response.json();
+      if(data.status === 'error') return alert(data.message);
+
+      document.getElementById('payAmount').innerText = totalPrice;
+      const upi = `upi://pay?pa=kannaiya@upi&pn=Kannaiya&am=${totalPrice}&cu=INR`;
+      document.getElementById('qrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upi)}`;
+      document.getElementById('paymentStatusText').innerText = "Status: PENDING";
+      document.getElementById('paymentStatusText').style.color = "#7f8c8d";
+      document.getElementById('checkoutModal').style.display = 'flex';
+      pollInterval = setInterval(checkPaymentStatus, 2000); 
+    } catch(e) { alert("Backend server connection failed."); }
+  }
+
+  async function checkPaymentStatus() {
+    try {
+      const res = await fetch(`http://localhost:8000/api/order-status/${currentOrderId}`);
+      const data = await res.json();
+      if (data.status === 'PAID') {
+        clearInterval(pollInterval); 
+        document.getElementById('paymentStatusText').innerText = "Status: PAID! ✅";
+        document.getElementById('paymentStatusText').style.color = "green";
+        setTimeout(() => {
+          closeModal('checkoutModal');
+          alert("Payment Received successfully!");
+          fetchMyOrderCount(JSON.parse(localStorage.getItem('kannaiya_user')).email);
+          showSection('orders');
+        }, 1000);
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  function cancelCheckout() { clearInterval(pollInterval); closeModal('checkoutModal'); }
+</script>
+</body>
+</html>
