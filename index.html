@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kannaiya | Dress Collection</title>
+<title>KANAIYA | Dress Collection</title>
 <style>
   body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #fafafa; color: #333; }
   header { padding: 20px 40px; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
@@ -43,14 +43,13 @@
   .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;}
   #qrCode { margin: 20px 0; width: 200px; height: 200px; border: 1px solid #eee; padding: 10px; border-radius: 8px;}
 
-  /* Styling for the 60-second warning box */
   .server-warning { grid-column: 1 / -1; text-align: center; padding: 40px; background: #fff8e1; border-radius: 8px; border: 1px solid #ffe082; }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">KANNAIYA</div>
+  <div class="logo">KANAIYA</div>
   <nav>
     <button onclick="showSection('shop')" class="active-nav" id="nav-shop">Shop</button>
     <button onclick="showSection('orders')" id="nav-orders">My Orders (<span id="orderCount">0</span>)</button>
@@ -334,7 +333,7 @@
       if(data.status === 'error') return alert(data.message);
 
       document.getElementById('payAmount').innerText = totalPrice;
-      const upi = `upi://pay?pa=kannaiya@upi&pn=Kannaiya&am=${totalPrice}&cu=INR`;
+      const upi = `upi://pay?pa=kannaiya@upi&pn=KANAIYA&am=${totalPrice}&cu=INR`;
       document.getElementById('qrCode').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upi)}`;
       document.getElementById('paymentStatusText').innerText = "Status: PENDING";
       document.getElementById('paymentStatusText').style.color = "#7f8c8d";
