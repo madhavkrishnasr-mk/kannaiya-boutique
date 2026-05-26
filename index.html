@@ -117,7 +117,7 @@
   // --- Dynamic Products Fetching ---
   async function fetchProducts() {
     try {
-      const res = await fetch('http://localhost:8000/api/products');
+      const res = await fetch('https://main-oreq.onrender.com/api/products');
       const data = await res.json();
       products = data.products;
       renderProducts();
@@ -229,7 +229,7 @@
     const errorEl = document.getElementById('auth_error');
     
     try {
-      const res = await fetch(`http://localhost:8000/api/${mode}`, {
+      const res = await fetch(`https://main-oreq.onrender.com/api/${mode}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, phone, address })
       });
@@ -249,7 +249,7 @@
   // --- Orders & Cancellations ---
   async function fetchMyOrderCount(email) {
     try {
-      const res = await fetch(`http://localhost:8000/api/my-orders/${email}`);
+      const res = await fetch(`https://main-oreq.onrender.com/api/my-orders/${email}`);
       const data = await res.json();
       document.getElementById('orderCount').innerText = data.orders.length;
     } catch (e) { console.error(e); }
@@ -261,7 +261,7 @@
     if (!user) return list.innerHTML = '<p>Please login to view your orders.</p>';
 
     try {
-      const res = await fetch(`http://localhost:8000/api/my-orders/${user.email}`);
+      const res = await fetch(`https://main-oreq.onrender.com/api/my-orders/${user.email}`);
       const data = await res.json();
       if (data.orders.length === 0) return list.innerHTML = '<p>You have not placed any orders yet.</p>';
 
@@ -302,7 +302,7 @@
   async function cancelCustomerOrder(orderId) {
     if(confirm("Are you sure you want to cancel this order? The amount will be refunded if paid.")) {
       try {
-        await fetch(`http://localhost:8000/api/cancel-order/${orderId}`, { method: 'POST' });
+        await fetch(`https://main-oreq.onrender.com/api/cancel-order/${orderId}`, { method: 'POST' });
         renderMyOrders(); // Refresh UI instantly
       } catch (e) { alert("Could not cancel order."); }
     }
@@ -320,7 +320,7 @@
     currentOrderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
     
     try {
-      const response = await fetch('http://localhost:8000/api/orders', {
+      const response = await fetch('https://main-oreq.onrender.com/api/orders', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           order_id: currentOrderId, email: user.email, product_id: pendingProduct.id,
@@ -342,7 +342,7 @@
 
   async function checkPaymentStatus() {
     try {
-      const res = await fetch(`http://localhost:8000/api/order-status/${currentOrderId}`);
+      const res = await fetch(`https://main-oreq.onrender.com/api/order-status/${currentOrderId}`);
       const data = await res.json();
       if (data.status === 'PAID') {
         clearInterval(pollInterval); 
